@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Екатерина Дрибница](https://up.htmlacademy.ru/javascript/10/user/433511).
-* Наставник: `Неизвестно`.
+* Наставник: [Денис Корнейчук](https://up.htmlacademy.ru/javascript/10/user/70618).
 
 ---
 
