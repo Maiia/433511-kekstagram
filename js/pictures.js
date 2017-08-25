@@ -11,6 +11,10 @@ var PHOTOS_COMMENTS = [
 ];
 var usersPhotosArr = [];
 
+var ESC_KEYCODE = 27;
+var ENTER_KEYCODE = 13;
+
+// part #1 - CREATING OF PHOTOS OBJECT
 function getRandomIndex(max, min) {
   return Math.round(Math.random() * (max - min)) + min;
 }
@@ -46,12 +50,14 @@ function createPhotosObject() {
 }
 createPhotosObject();
 
-// part #2 - creating of DOM-elements
+
+// part #2 - CREATING OF GALLERY
 function renderPicturesBlock() {
   for (var i = 0; i < usersPhotosArr.length; i++) {
     renderPictureItem(usersPhotosArr[i]);
   }
 }
+
 function renderPictureItem(item) {
   var pictureTemplate = document.querySelector('#picture-template').content;
   var pictureItem = pictureTemplate.cloneNode(true);
@@ -63,21 +69,81 @@ function renderPictureItem(item) {
   fragment.appendChild(pictureItem);
 
   document.querySelector('.pictures').appendChild(fragment);
-
-  document.querySelector('.upload-overlay').classList.add('hidden');
 }
 
-function renderGalleryOverlay() {
-  var item = usersPhotosArr[0];
+renderPicturesBlock();
 
-  var gallery = document.querySelector('.gallery-overlay');
+
+// part #3 - GALLERY OVERLAY BLOCK
+var gallery = document.querySelector('.gallery-overlay');
+var pictureItems = document.querySelectorAll('.picture');
+var galleryOverlayClose = gallery.querySelector('.gallery-overlay-close');
+
+function renderGalleryOverlay(itemIndex) {
+  var item = usersPhotosArr[itemIndex];
   gallery.classList.remove('hidden');
-
   gallery.querySelector('.gallery-overlay-image').setAttribute('src', item.url);
   gallery.querySelector('.likes-count').textContent = item.likes;
   gallery.querySelector('.comments-count').textContent = item.comments.length;
 }
 
-renderPicturesBlock();
 
-renderGalleryOverlay();
+// part #3.1 - GALLERY OVERLAY PICTURES HANDLERS
+function addEventListenersToPictures() {
+  pictureItems.forEach(function (item) {
+    item.addEventListener('click', onPictureClick);
+    item.addEventListener('keydown', onPictureEnterDown);
+  });
+}
+
+function onPictureClick(evt) {
+  openGalleryOverlay(evt);
+}
+function onPictureEnterDown(evt) {
+  if (evt.keyCode === ENTER_KEYCODE) {
+    openGalleryOverlay(evt);
+  }
+}
+
+function onCloseClick(evt) {
+  closeGalleryOverlay(evt);
+}
+function onCloseEnterDown(evt) {
+  if (evt.keyCode === ENTER_KEYCODE) {
+    closeGalleryOverlay(evt);
+  }
+}
+function onEscapeDown(evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    closeGalleryOverlay(evt);
+  }
+}
+
+// part #3.2 - GALLERY OVERLAY HANDLERS FUNCTIONS
+function openGalleryOverlay(evt) {
+  evt.preventDefault();
+  var targetPicture = evt.currentTarget;
+  var pictureItemsArr = Array.prototype.slice.call(pictureItems, 0);
+  var pictureIndex = pictureItemsArr.indexOf(targetPicture);
+  renderGalleryOverlay(pictureIndex);
+
+  galleryOverlayClose.addEventListener('click', onCloseClick);
+  galleryOverlayClose.addEventListener('keydown', onCloseEnterDown);
+  document.addEventListener('keydown', onEscapeDown);
+}
+
+function closeGalleryOverlay(evt) {
+  gallery.classList.add('hidden');
+
+  galleryOverlayClose.removeEventListener('click', onCloseClick);
+  galleryOverlayClose.removeEventListener('keydown', onCloseEnterDown);
+  document.removeEventListener('keydown', onEscapeDown);
+}
+
+addEventListenersToPictures();
+
+
+// part #4.1 - UPLOAD OVERLAY
+document.querySelector('.upload-overlay').classList.add('hidden');
+
+
