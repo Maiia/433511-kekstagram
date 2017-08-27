@@ -1,7 +1,7 @@
 'use strict';
 
 var IMAGES_AMOUNT = 26;
-var PHOTOS_COMMENTS = [
+var photosComments = [
   'Всё отлично!',
   'В целом всё неплохо. Но не всё.',
   'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.',
@@ -14,47 +14,64 @@ var usersPhotosArr = [];
 var ESC_KEYCODE = 27;
 var ENTER_KEYCODE = 13;
 
+var pictureItems = [];
+
+var gallery = document.querySelector('.gallery-overlay');
+var galleryOverlayClose = gallery.querySelector('.gallery-overlay-close');
+
+var uploadOverlay = document.querySelector('.upload-overlay');
+var uploadInput = document.querySelector('#upload-file');
+var buttonCancelUploadOverlay = uploadOverlay.querySelector('.upload-form-cancel');
+var controlsUploadOverlay = uploadOverlay.querySelector('.upload-effect-controls');
+
+var uploadResizeControls = uploadOverlay.querySelector('.upload-resize-controls');
+
+var buttonDecControl = uploadResizeControls.querySelector('.upload-resize-controls-button-dec');
+var buttonIncControl = uploadResizeControls.querySelector('.upload-resize-controls-button-inc');
+var commentField = document.querySelector('#upload-select-image');
+var hashTagsUploadOverlay = uploadOverlay.querySelector('.upload-form-hashtags');
+var commentsUploadOverlay = uploadOverlay.querySelector('.upload-form-description');
+
+
 // part #1 - CREATING OF PHOTOS OBJECT
 function getRandomIndex(max, min) {
   return Math.round(Math.random() * (max - min)) + min;
 }
 
 function createPhotosUrl() {
-  var PHOTOS_URL = [];
+  var photosUrl = [];
 
   for (var i = 1; i <= IMAGES_AMOUNT; i++) {
-    PHOTOS_URL.push('photos/' + i + '.jpg');
+    photosUrl.push('photos/' + i + '.jpg');
   }
-  return PHOTOS_URL;
+  return photosUrl;
 }
 
 function setUsersComments(amount) {
   var comments = [];
   for (var i = 0; i < amount; i++) {
-    comments.push(PHOTOS_COMMENTS[getRandomIndex(0, PHOTOS_COMMENTS.length - 1)]);
+    comments.push(photosComments[getRandomIndex(0, photosComments.length - 1)]);
   }
   return comments;
 }
 
-function createPhotosObject() {
-  var PHOTOS_URL = createPhotosUrl();
-
-  for (var i = 0; i < PHOTOS_URL.length; i++) {
-    usersPhotosArr.push({
-      url: PHOTOS_URL[i],
+function createPhotosObject(arr) {
+  var photosUrl = createPhotosUrl();
+  for (var i = 0; i < photosUrl.length; i++) {
+    arr.push({
+      url: photosUrl[i],
       likes: getRandomIndex(200, 15),
       comments: setUsersComments(getRandomIndex(1, 2))
     });
   }
   return usersPhotosArr;
 }
-createPhotosObject();
 
 
 // part #2 - CREATING OF GALLERY
-function renderPicturesBlock() {
-  for (var i = 0; i < usersPhotosArr.length; i++) {
-    renderPictureItem(usersPhotosArr[i]);
+function renderPicturesBlock(arr) {
+  for (var i = 0; i < arr.length; i++) {
+    renderPictureItem(arr[i]);
   }
 }
 
@@ -71,14 +88,8 @@ function renderPictureItem(item) {
   document.querySelector('.pictures').appendChild(fragment);
 }
 
-renderPicturesBlock();
-
 
 // part #3 - GALLERY OVERLAY BLOCK
-var gallery = document.querySelector('.gallery-overlay');
-var pictureItems = document.querySelectorAll('.picture');
-var galleryOverlayClose = gallery.querySelector('.gallery-overlay-close');
-
 function renderGalleryOverlay(itemIndex) {
   var item = usersPhotosArr[itemIndex];
   gallery.classList.remove('hidden');
@@ -87,22 +98,9 @@ function renderGalleryOverlay(itemIndex) {
   gallery.querySelector('.comments-count').textContent = item.comments.length;
 }
 
-
 // part #3.1 - GALLERY OVERLAY PICTURES HANDLERS
-function addEventListenersToPictures() {
-  pictureItems.forEach(function (item) {
-    item.addEventListener('click', onPictureClick);
-    item.addEventListener('keydown', onPictureEnterDown);
-  });
-}
-
 function onPictureClick(evt) {
   openGalleryOverlay(evt);
-}
-function onPictureEnterDown(evt) {
-  if (evt.keyCode === ENTER_KEYCODE) {
-    openGalleryOverlay(evt);
-  }
 }
 
 function onCloseClick(evt) {
@@ -115,7 +113,13 @@ function onCloseEnterDown(evt) {
 }
 function onEscapeDown(evt) {
   if (evt.keyCode === ESC_KEYCODE) {
-    closeGalleryOverlay(evt);
+    if (!(gallery.classList.contains('hidden'))) {
+      closeGalleryOverlay(evt);
+    } else if (!(uploadOverlay.classList.contains('hidden'))) {
+      if (!(commentsUploadOverlay === document.activeElement)) {
+        closeUploadOverlay(evt);
+      }
+    }
   }
 }
 
@@ -127,23 +131,204 @@ function openGalleryOverlay(evt) {
   var pictureIndex = pictureItemsArr.indexOf(targetPicture);
   renderGalleryOverlay(pictureIndex);
 
-  galleryOverlayClose.addEventListener('click', onCloseClick);
-  galleryOverlayClose.addEventListener('keydown', onCloseEnterDown);
-  document.addEventListener('keydown', onEscapeDown);
+  var galleryOverlayHendlers = [
+    ['add', galleryOverlayClose, 'click', onCloseClick],
+    ['add', galleryOverlayClose, 'keydown', onCloseEnterDown],
+    ['add', document, 'keydown', onEscapeDown]
+  ];
+  addRemoveHandlers(galleryOverlayHendlers);
 }
 
 function closeGalleryOverlay(evt) {
   gallery.classList.add('hidden');
 
   galleryOverlayClose.removeEventListener('click', onCloseClick);
-  galleryOverlayClose.removeEventListener('keydown', onCloseEnterDown);
   document.removeEventListener('keydown', onEscapeDown);
 }
 
-addEventListenersToPictures();
-
 
 // part #4.1 - UPLOAD OVERLAY
-document.querySelector('.upload-overlay').classList.add('hidden');
+
+// HANDLERS
+function onUploadInputClick() {
+  openUploadOverlay();
+}
+function onCancelUploadOverlayClick() {
+  closeUploadOverlay();
+  uploadInput.click();
+}
 
 
+// UPLOAD OVERLAY HANDLERS FUNCTIONS
+function openUploadOverlay() {
+  addRemoveHandlers([
+    ['add', buttonCancelUploadOverlay, 'click', onCancelUploadOverlayClick],
+    ['add', document, 'keydown', onEscapeDown],
+    ['add', buttonIncControl, 'click', onButtonResizeClick],
+    ['add', buttonDecControl, 'click', onButtonResizeClick],
+    ['add', commentField, 'change', onCommentChange],
+    ['add', commentField, 'invalid', onCommentInvalid, true],
+    ['add', hashTagsUploadOverlay, 'input', onHashtagsInput],
+    ['add', commentsUploadOverlay, 'input', onCommentsInput],
+    ['add', controlsUploadOverlay, 'click', itemEffectControlClick]
+  ]);
+
+  uploadOverlay.classList.remove('hidden');
+}
+
+function closeUploadOverlay() {
+  addRemoveHandlers([
+    ['remove', buttonCancelUploadOverlay, 'click', onCancelUploadOverlayClick],
+    ['remove', document, 'keydown', onEscapeDown],
+    ['remove', buttonIncControl, 'click', onButtonResizeClick],
+    ['remove', buttonDecControl, 'click', onButtonResizeClick],
+    ['remove', commentField, 'change', onCommentChange],
+    ['remove', commentField, 'invalid', onCommentInvalid, true],
+    ['remove', hashTagsUploadOverlay, 'input', onHashtagsInput],
+    ['remove', commentsUploadOverlay, 'input', onCommentsInput],
+    ['remove', controlsUploadOverlay, 'click', itemEffectControlClick]
+  ]);
+
+  uploadOverlay.classList.add('hidden');
+}
+
+function itemEffectControlClick(evt) {
+  var element = evt.target;
+  if (element.className === 'upload-effect-preview') {
+    var elementStyle = element.parentNode.getAttribute('for').replace('upload-', '');
+    addClassByControlClick(elementStyle);
+  }
+}
+
+function addClassByControlClick(elementStyle) {
+  var imagePreviewUploadOverlay = uploadOverlay.querySelector('.effect-image-preview');
+  imagePreviewUploadOverlay.classList = '';
+  imagePreviewUploadOverlay.classList.add('effect-image-preview');
+  imagePreviewUploadOverlay.classList.add(elementStyle);
+}
+
+
+// SCALE OF UPLOAD OVERLAY PREVIEV IMAGE
+function onButtonResizeClick(evt) {
+  var effectImagePreviewUploadResize = document.querySelector('.effect-image-preview');
+  var element = evt.currentTarget;
+  var elementModyfiing = element.parentNode.querySelector('input');
+  var controlValue = parseInt(elementModyfiing.getAttribute('value'), 10);
+  var controlValueStep = parseInt(elementModyfiing.getAttribute('step'), 10);
+  var controlValueMax = parseInt(elementModyfiing.getAttribute('maxlength'), 10);
+  var controlValueMin = parseInt(elementModyfiing.getAttribute('minlength'), 10);
+  var elTextContent = element.textContent[0];
+
+  if (elTextContent === '+' && controlValue + controlValueStep <= controlValueMax) {
+    controlValue += controlValueStep;
+  } else if (elTextContent === '–' && controlValue - controlValueStep >= controlValueMin) {
+    controlValue -= controlValueStep;
+  }
+  elementModyfiing.setAttribute('value', controlValue + '%');
+  changeElemScale(effectImagePreviewUploadResize, controlValue);
+}
+
+function changeElemScale(element, scale) {
+  var scaleValue = scale / 100;
+  element.style.cssText = 'transform: scale(' + scaleValue + ')';
+}
+
+// UPLOAD OVERLAY FORM FIELDS VALIDATION
+function onCommentChange(evt) {
+  var targetEl = evt.target;
+  targetEl.style.borderColor = '';
+}
+function onCommentInvalid(evt) {
+  var targetEl = evt.target;
+  targetEl.style.borderColor = 'red';
+}
+
+function onHashtagsInput(evt) {
+  var targetEl = evt.target;
+  var valueArr = targetEl.value.split(' ');
+
+  // flags
+  var noHashtag = false;
+  var isRepeated = false;
+  var isTooLong = false;
+  var tooMuchItems = false;
+
+  var testArr = [];
+  for (var i = 0; i < valueArr.length; i++) {
+    noHashtag = valueArr[i].charAt(0) !== '#';
+    isTooLong = valueArr[i].length > 20;
+
+    if (testArr.indexOf(valueArr[i]) === -1) {
+      testArr.push(valueArr[i]);
+    } else {
+      isRepeated = true;
+    }
+  }
+  tooMuchItems = valueArr.length > 5;
+
+  hashtagsSetValidity(evt, noHashtag, isRepeated, isTooLong, tooMuchItems);
+}
+function hashtagsSetValidity(evt, noHashtag, isRepeated, isTooLong, tooMuchItems) {
+  var targetEl = evt.target;
+
+  if (noHashtag) {
+    targetEl.setCustomValidity('hashtags should start with \'#\' and splitted by \' \'');
+  } else if (isRepeated) {
+    targetEl.setCustomValidity('hashtags should not be repeated');
+  } else if (tooMuchItems) {
+    targetEl.setCustomValidity('amount of hashtags should not be more than 5');
+  } else if (isTooLong) {
+    targetEl.setCustomValidity('hashtags should not be more than 20 chars');
+  } else {
+    targetEl.setCustomValidity('');
+  }
+}
+
+function onCommentsInput(evt) {
+  var targetEl = evt.target;
+  if (targetEl.validity.tooShort) {
+    targetEl.setCustomValidity('Comment is too short');
+  } else if (targetEl.validity.tooLong) {
+    targetEl.setCustomValidity('Comment is too long');
+  } else {
+    targetEl.setCustomValidity('');
+  }
+}
+
+// general
+function addRemoveHandlers(arr) {
+  for (var i = 0; i < arr.length; i++) {
+    var item = arr[i];
+    if (item.length === 4) {
+      item.push(false);
+    } else {
+      item.push(true);
+    }
+    if (item[0] === 'add') {
+      item[1].addEventListener(item[2], item[3], item[4]);
+    } else {
+      item[1].removeEventListener(item[2], item[3], item[4]);
+    }
+  }
+}
+
+function addCollectionElHandlers(collection, obj) {
+  var eventHandlers = obj;
+  collection.forEach(function (item) {
+    for (var key in eventHandlers) {
+      if (eventHandlers.hasOwnProperty(key)) {
+        item.addEventListener(key, eventHandlers[key]);
+      }
+    }
+  });
+}
+
+
+function init() {
+  usersPhotosArr = createPhotosObject(usersPhotosArr);
+  renderPicturesBlock(usersPhotosArr);
+  pictureItems = document.querySelectorAll('.picture');
+  addCollectionElHandlers(pictureItems, {'click': onPictureClick});
+  uploadInput.addEventListener('change', onUploadInputClick);
+}
+init();
