@@ -2,8 +2,6 @@
 
 (function () {
 
-  window.usersPhotosArr = [];
-
   var IMAGES_AMOUNT = 26;
   var photosComments = [
     'Всё отлично!',
@@ -35,7 +33,8 @@
     return comments;
   }
 
-  function createPhotosObject(arr) {
+  function createPhotosObject() {
+    var arr = [];
     var photosUrl = createPhotosUrl();
     for (var i = 0; i < photosUrl.length; i++) {
       arr.push({
@@ -44,9 +43,16 @@
         comments: setUsersComments(getRandomIndex(1, 2))
       });
     }
-    return window.usersPhotosArr;
+    return arr;
   }
 
-  window.usersPhotosArr = createPhotosObject(window.usersPhotosArr);
+  window.data = (function () {
+    function getPhotosData() {
+      return createPhotosObject();
+    }
+    return {
+      getPhotosData: getPhotosData
+    };
+  })();
 
 })();
