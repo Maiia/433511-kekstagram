@@ -117,13 +117,6 @@
     imagePreview.style = 'filter:' + effectCoeff[window.currentFilter];
   };
 
-  var applyFilter = function (elementStyle) {
-    imagePreview.classList = '';
-    imagePreview.classList.add('effect-image-preview' + elementStyle);
-
-    resetScale(resizeControls);
-  };
-
   function resetScale(element) {
     element.querySelector('input').setAttribute('value', '100%');
   }
@@ -134,6 +127,15 @@
 
   window.initializeFilters.addEffectFilter(effectControls, applyFilter, resetLevel);
 
+  function applyFilter(elementStyle) {
+    imagePreview.classList = '';
+    imagePreview.classList.add('effect-image-preview' + elementStyle);
+
+    if (elementStyle === 'effect-none') {
+      window.level.classList.add('hidden');
+    }
+    resetScale(resizeControls);
+  }
 
 	// UPLOAD OVERLAY FORM FIELDS VALIDATION
   function onCommentChange(evt) {

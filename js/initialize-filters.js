@@ -6,19 +6,11 @@ window.initializeFilters = (function () {
       var element = evt.target;
       if (element.className === 'upload-effect-preview') {
         var elementStyle = element.parentNode.getAttribute('for').replace('upload-', '');
-        applyFunction(elementStyle);
-
         window.currentFilter = elementStyle.replace('effect-', '');
-
-        if (elementStyle !== 'effect-none') {
-          window.level.classList.remove('hidden');
-
-          resetLevelFunc();
-
-        } else {
-          window.level.classList.add('hidden');
-        }
+        window.level.classList.remove('hidden');
         window.changeLevel(window.levelDefault);
+        resetLevelFunc();
+        applyFunction(elementStyle);
       }
     });
   }

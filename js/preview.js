@@ -7,11 +7,8 @@
   var pictureItems = document.querySelectorAll('.picture');
 
   function renderGalleryOverlay(itemIndex) {
-    var item = window.usersPhotosArr[itemIndex];
     gallery.classList.remove('hidden');
-    gallery.querySelector('.gallery-overlay-image').setAttribute('src', item.url);
-    gallery.querySelector('.likes-count').textContent = item.likes;
-    gallery.querySelector('.comments-count').textContent = item.comments.length;
+    window.gallery.getPhotoByIndex(gallery, itemIndex);
   }
 
   function openGalleryOverlay(evt) {
