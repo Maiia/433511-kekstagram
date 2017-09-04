@@ -9,14 +9,17 @@
     }
   }
 
-  function init() {
-    usersPhotosArr = window.data.getPhotosData();
+  function successHandler(photosObject) {
+    usersPhotosArr = photosObject;
     renderPicturesBlock(usersPhotosArr);
+    window.preview(window);
   }
-  init();
+
+  window.backend.load(successHandler, window.util.errorHandler);
 
   window.gallery = (function () {
     function getPhotoByIndex(galleryItem, itemIndex) {
+
       var item = usersPhotosArr[itemIndex];
       galleryItem.querySelector('.gallery-overlay-image').setAttribute('src', item.url);
       galleryItem.querySelector('.likes-count').textContent = item.likes;
