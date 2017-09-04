@@ -21,7 +21,19 @@
   var imageEffectBlock = document.querySelector('#upload-select-image');
   var commentsField = uploadOverlay.querySelector('.upload-form-description');
 
+  var form = document.querySelector('#upload-select-image');
+
   window.currentFilter = null;
+
+  form.addEventListener('submit', function (evt) {
+    var element = evt.currentTarget;
+    window.backend.save(new FormData(form), function () {
+      closeUploadOverlay();
+      element.reset();
+
+    }, window.util.errorHandler);
+    evt.preventDefault();
+  });
 
 
   function openUploadOverlay() {
@@ -39,6 +51,12 @@
   }
 
   function closeUploadOverlay() {
+
+    window.changeLevel(window.levelDefault);
+    resetLevel();
+    applyFilter('effect-none');
+    imagePreview.style = '';
+
     window.util.addRemoveHandlers([
 			['remove', buttonCancel, 'click', onCancelClick],
 			['remove', document, 'keydown', onEscapeDown],
@@ -119,6 +137,7 @@
 
   function resetScale(element) {
     element.querySelector('input').setAttribute('value', '100%');
+    changeElemScale(100);
   }
   function resetLevel() {
     levelPin.style.left = window.levelDefault + '%';
@@ -129,7 +148,8 @@
 
   function applyFilter(elementStyle) {
     imagePreview.classList = '';
-    imagePreview.classList.add('effect-image-preview' + elementStyle);
+    imagePreview.classList.add('effect-image-preview');
+    imagePreview.classList.add(elementStyle);
 
     if (elementStyle === 'effect-none') {
       window.level.classList.add('hidden');

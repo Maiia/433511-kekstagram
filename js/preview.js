@@ -1,6 +1,6 @@
 'use strict';
 
-(function () {
+window.preview = (function (window) {
 
   var gallery = document.querySelector('.gallery-overlay');
   var galleryOverlayClose = gallery.querySelector('.gallery-overlay-close');
@@ -18,12 +18,12 @@
     var pictureIndex = pictureItemsArr.indexOf(targetPicture);
     renderGalleryOverlay(pictureIndex);
 
-    var galleryOverlayHendlers = [
+    var galleryOverlayHandlers = [
 			['add', galleryOverlayClose, 'click', onCloseClick],
 			['add', galleryOverlayClose, 'keydown', onCloseEnterDown],
 			['add', document, 'keydown', onEscapeDown]
     ];
-    window.util.addRemoveHandlers(galleryOverlayHendlers);
+    window.util.addRemoveHandlers(galleryOverlayHandlers);
   }
 
   function closeGalleryOverlay(evt) {
@@ -67,4 +67,4 @@
   }
   addCollectionElHandlers(pictureItems, {'click': onPictureClick});
 
-})();
+});
