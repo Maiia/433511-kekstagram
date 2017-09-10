@@ -7,7 +7,7 @@ window.preview = (function (window) {
   var pictureItems = document.querySelectorAll('.picture');
 
   function renderGalleryOverlay(itemIndex) {
-    gallery.classList.remove('hidden');
+    window.util.showBlock(gallery);
     window.gallery.getPhotoByIndex(gallery, itemIndex);
   }
 
@@ -27,7 +27,7 @@ window.preview = (function (window) {
   }
 
   function closeGalleryOverlay(evt) {
-    gallery.classList.add('hidden');
+    window.util.hideBlock(gallery);
 
     galleryOverlayClose.removeEventListener('click', onCloseClick);
     document.removeEventListener('keydown', onEscapeDown);

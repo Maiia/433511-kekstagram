@@ -21,6 +21,18 @@ window.util = (function (window) {
     }
   }
 
+  function showBlock(item) {
+    if (item.classList.contains('hidden')) {
+      item.classList.remove('hidden');
+    }
+  }
+
+  function hideBlock(item) {
+    if (!(item.classList.contains('hidden'))) {
+      item.classList.add('hidden');
+    }
+  }
+
   function errorHandler(errorMessage) {
     var node = document.createElement('div');
     node.style = 'z-index: 100; margin: 0 auto; text-align: center; background-color: red;';
@@ -39,6 +51,8 @@ window.util = (function (window) {
   }
   return {
     addRemoveHandlers: addRemoveHandlers,
-    errorHandler: errorHandler
+    errorHandler: errorHandler,
+    showBlock: showBlock,
+    hideBlock: hideBlock
   };
 })(window);

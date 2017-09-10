@@ -12,6 +12,7 @@ window.initializeFilters = (function () {
         resetLevelFunc();
         applyFunction(elementStyle);
       }
+
     });
   }
 
