@@ -4,7 +4,7 @@ window.backend = (function () {
 
   var SERVER_URL = 'https://1510.dump.academy/kekstagram';
 
-  var setup = function (onLoad, onError) {
+  function setup(onLoad, onError) {
     var xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
 
@@ -22,8 +22,9 @@ window.backend = (function () {
       onError('Запрос не успел выполниться за ' + xhr.timeout + 'мс');
     });
     xhr.timeout = 10000;
+
     return xhr;
-  };
+  }
 
   function load(onLoad, onError) {
     var xhr = setup(onLoad, onError);

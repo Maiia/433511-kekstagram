@@ -4,6 +4,8 @@ window.util = (function (window) {
 
   window.ESC_KEYCODE = 27;
   window.ENTER_KEYCODE = 13;
+  var DEBOUNCE_TIME = 300;
+  var lastTimeout;
 
   function addRemoveHandlers(arr) {
     for (var i = 0; i < arr.length; i++) {
@@ -33,26 +35,48 @@ window.util = (function (window) {
     }
   }
 
-  function errorHandler(errorMessage) {
-    var node = document.createElement('div');
-    node.style = 'z-index: 100; margin: 0 auto; text-align: center; background-color: red;';
-    node.style.position = 'absolute';
-    node.style.left = '50%';
-    node.style.top = '50%';
-    node.style.transform = 'translate(-50%, -50%)';
-    node.style.padding = '50px';
-    node.style.fontSize = '40px';
-    node.style.color = 'white';
-    node.style.background = 'rgba(255, 0, 0, .7)';
-    node.style.minWidth = '50%';
-
-    node.textContent = errorMessage;
-    document.body.insertAdjacentElement('afterbegin', node);
+  function debounce(func) {
+    if (lastTimeout) {
+      window.clearTimeout(lastTimeout);
+    }
+    lastTimeout = window.setTimeout(func, DEBOUNCE_TIME);
   }
+
+  function addCollectionElHandlers(collection, obj) {
+    var eventHandlers = obj;
+    collection.forEach(function (item) {
+      for (var key in eventHandlers) {
+        if (eventHandlers.hasOwnProperty(key)) {
+          item.addEventListener(key, eventHandlers[key]);
+        }
+      }
+    });
+  }
+
+  function errorHandler(errorMessage) {
+    var item = document.createElement('div');
+    item.style = 'z-index: 100; margin: 0 auto; text-align: center; background-color: red;';
+    item.style.position = 'absolute';
+    item.style.left = '50%';
+    item.style.top = '50%';
+    item.style.transform = 'translate(-50%, -50%)';
+    item.style.padding = '50px';
+    item.style.fontSize = '40px';
+    item.style.color = 'white';
+    item.style.background = 'rgba(255, 0, 0, .7)';
+    item.style.minWidth = '50%';
+
+    item.textContent = errorMessage;
+    document.body.insertAdjacentElement('afterbegin', item);
+  }
+
   return {
     addRemoveHandlers: addRemoveHandlers,
     errorHandler: errorHandler,
     showBlock: showBlock,
-    hideBlock: hideBlock
+    hideBlock: hideBlock,
+    debounce: debounce,
+    addCollectionElHandlers: addCollectionElHandlers
   };
+
 })(window);

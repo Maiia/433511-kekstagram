@@ -1,14 +1,13 @@
 'use strict';
 
-window.preview = (function (window) {
-
+window.preview = (function (window, arr) {
   var gallery = document.querySelector('.gallery-overlay');
   var galleryOverlayClose = gallery.querySelector('.gallery-overlay-close');
   var pictureItems = document.querySelectorAll('.picture');
 
   function renderGalleryOverlay(itemIndex) {
     window.util.showBlock(gallery);
-    window.gallery.getPhotoByIndex(gallery, itemIndex);
+    window.gallery.getPhotoByIndex(gallery, itemIndex, arr);
   }
 
   function openGalleryOverlay(evt) {
@@ -23,48 +22,42 @@ window.preview = (function (window) {
 			['add', galleryOverlayClose, 'keydown', onCloseEnterDown],
 			['add', document, 'keydown', onEscapeDown]
     ];
+
     window.util.addRemoveHandlers(galleryOverlayHandlers);
   }
 
-  function closeGalleryOverlay(evt) {
+  function closeGalleryOverlay() {
     window.util.hideBlock(gallery);
 
-    galleryOverlayClose.removeEventListener('click', onCloseClick);
-    document.removeEventListener('keydown', onEscapeDown);
-  }
+    var galleryOverlayHandlers = [
+      ['remove', galleryOverlayClose, 'click', onCloseClick],
+      ['remove', document, 'keydown', onEscapeDown]
+    ];
 
-	// ~general
-  function addCollectionElHandlers(collection, obj) {
-    var eventHandlers = obj;
-    collection.forEach(function (item) {
-      for (var key in eventHandlers) {
-        if (eventHandlers.hasOwnProperty(key)) {
-          item.addEventListener(key, eventHandlers[key]);
-        }
-      }
-    });
+    window.util.addRemoveHandlers(galleryOverlayHandlers);
   }
 
 	// HANDLERS
+  function onCloseClick(evt) {
+    closeGalleryOverlay(evt);
+  }
+
   function onPictureClick(evt) {
     openGalleryOverlay(evt);
   }
 
-  function onCloseClick(evt) {
-    closeGalleryOverlay(evt);
-  }
   function onCloseEnterDown(evt) {
     if (evt.keyCode === window.ENTER_KEYCODE) {
       closeGalleryOverlay(evt);
     }
   }
+
   function onEscapeDown(evt) {
-    if (evt.keyCode === window.ESC_KEYCODE) {
-      if (!(gallery.classList.contains('hidden'))) {
-        closeGalleryOverlay(evt);
-      }
+    if (evt.keyCode === window.ESC_KEYCODE && !(gallery.classList.contains('hidden'))) {
+      closeGalleryOverlay(evt);
     }
   }
-  addCollectionElHandlers(pictureItems, {'click': onPictureClick});
+
+  window.util.addCollectionElHandlers(pictureItems, {'click': onPictureClick});
 
 });

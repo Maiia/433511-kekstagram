@@ -17,33 +17,32 @@
 
   var resizeControls = uploadOverlay.querySelector('.upload-resize-controls');
 
-  var hashTags = uploadOverlay.querySelector('.upload-form-hashtags');
   var imageEffectBlock = document.querySelector('#upload-select-image');
+  var hashTags = uploadOverlay.querySelector('.upload-form-hashtags');
   var commentsField = uploadOverlay.querySelector('.upload-form-description');
 
   var form = document.querySelector('#upload-select-image');
 
   window.currentFilter = null;
+  var BORDER_INVALID = 'red';
 
   form.addEventListener('submit', function (evt) {
     var element = evt.currentTarget;
     window.backend.save(new FormData(form), function () {
       closeUploadOverlay();
       element.reset();
-
     }, window.util.errorHandler);
     evt.preventDefault();
   });
 
-
   function openUploadOverlay() {
     window.util.addRemoveHandlers([
-			['add', buttonCancel, 'click', onCancelClick],
-			['add', document, 'keydown', onEscapeDown],
-			['add', imageEffectBlock, 'change', onCommentChange],
-			['add', imageEffectBlock, 'invalid', onCommentInvalid, true],
-			['add', hashTags, 'input', onHashtagsInput],
-			['add', commentsField, 'input', onCommentsInput]
+      ['add', buttonCancel, 'click', onCancelClick],
+      ['add', document, 'keydown', onEscapeDown],
+      ['add', imageEffectBlock, 'change', onInputChange],
+      ['add', imageEffectBlock, 'invalid', onInputInvalid, true],
+      ['add', hashTags, 'input', onHashtagsInput],
+      ['add', commentsField, 'input', onCommentsInput]
     ]);
     uploadOverlay.classList.remove('hidden');
 
@@ -51,39 +50,37 @@
   }
 
   function closeUploadOverlay() {
-
     window.changeLevel(window.levelDefault);
     resetLevel();
     applyFilter('effect-none');
     imagePreview.style = '';
 
     window.util.addRemoveHandlers([
-			['remove', buttonCancel, 'click', onCancelClick],
-			['remove', document, 'keydown', onEscapeDown],
-			['remove', imageEffectBlock, 'change', onCommentChange],
-			['remove', imageEffectBlock, 'invalid', onCommentInvalid, true],
-			['remove', hashTags, 'input', onHashtagsInput],
-			['remove', commentsField, 'input', onCommentsInput]
+      ['remove', buttonCancel, 'click', onCancelClick],
+      ['remove', document, 'keydown', onEscapeDown],
+      ['remove', imageEffectBlock, 'change', onInputChange],
+      ['remove', imageEffectBlock, 'invalid', onInputInvalid, true],
+      ['remove', hashTags, 'input', onHashtagsInput],
+      ['remove', commentsField, 'input', onCommentsInput]
     ]);
+
     uploadOverlay.classList.add('hidden');
   }
 
-
-// SCALE OF UPLOAD OVERLAY PREVIEV IMAGE
   function changeElemScale(scaleValue) {
     imagePreview.style.transform = 'scale(' + scaleValue / 100 + ')';
   }
+
   window.initializeScale(resizeControls, changeElemScale);
 
-
-// EFFECT LEVEL MOVEMENT
   function onLevelPinMove(start) {
     resetScale(resizeControls);
 
     var startCoords = {
       x: start
     };
-    var onMouseMove = function (moveEvt) {
+
+    function onMouseMove(moveEvt) {
       moveEvt.preventDefault();
 
       var shift = {
@@ -93,27 +90,28 @@
         x: moveEvt.clientX
       };
 
-      var levelPersent = (levelPin.offsetLeft - shift.x) * 100 / levelMaxWidth;
-      if (levelPersent <= 0) {
-        levelPersent = 0;
+      var levelPercent = (levelPin.offsetLeft - shift.x) * 100 / levelMaxWidth;
+
+      if (levelPercent <= 0) {
+        levelPercent = 0;
         document.removeEventListener('mousemove', onMouseMove);
-      } else if (levelPersent >= 100) {
-        levelPersent = 100;
+      } else if (levelPercent >= 100) {
+        levelPercent = 100;
         document.removeEventListener('mousemove', onMouseMove);
       }
 
-      levelPin.style.left = levelPersent + '%';
-      levelLine.style.width = levelPersent + '%';
+      levelPin.style.left = levelPercent + '%';
+      levelLine.style.width = levelPercent + '%';
 
-      window.changeLevel(levelPersent);
-    };
+      window.changeLevel(levelPercent);
+    }
 
-    var onMouseUp = function (upEvt) {
+    function onMouseUp(upEvt) {
       upEvt.preventDefault();
 
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-    };
+    }
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
@@ -139,6 +137,7 @@
     element.querySelector('input').setAttribute('value', '100%');
     changeElemScale(100);
   }
+
   function resetLevel() {
     levelPin.style.left = window.levelDefault + '%';
     levelLine.style.width = window.levelDefault + '%';
@@ -157,25 +156,26 @@
     resetScale(resizeControls);
   }
 
-	// UPLOAD OVERLAY FORM FIELDS VALIDATION
-  function onCommentChange(evt) {
+
+  // UPLOAD OVERLAY FORM FIELDS VALIDATION
+  function onInputChange(evt) {
     var targetEl = evt.target;
     targetEl.style.borderColor = '';
   }
-  function onCommentInvalid(evt) {
+
+  function onInputInvalid(evt) {
     var targetEl = evt.target;
-    targetEl.style.borderColor = 'red';
+    targetEl.style.borderColor = BORDER_INVALID;
   }
 
   function onHashtagsInput(evt) {
     var targetEl = evt.target;
     var valueArr = targetEl.value.split(' ');
 
-		// flags
+    // flags
     var noHashtag = false;
     var isRepeated = false;
     var isTooLong = false;
-    var tooMuchItems = false;
 
     var testArr = [];
     for (var i = 0; i < valueArr.length; i++) {
@@ -188,35 +188,43 @@
         isRepeated = true;
       }
     }
-    tooMuchItems = valueArr.length > 5;
+    var tooMuchItems = valueArr.length > 5;
+    var hasItems = valueArr.length > 0;
 
-    hashtagsSetValidity(evt, noHashtag, isRepeated, isTooLong, tooMuchItems);
+    window.util.debounce(hashtagsSetValidity(evt, noHashtag, isRepeated, isTooLong, tooMuchItems, hasItems));
   }
-  function hashtagsSetValidity(evt, noHashtag, isRepeated, isTooLong, tooMuchItems) {
+
+  function hashtagsSetValidity(evt, noHashtag, isRepeated, isTooLong, tooMuchItems, hasItems) {
     var targetEl = evt.target;
 
-    if (noHashtag) {
-      targetEl.setCustomValidity('hashtags should start with \'#\' and splitted by \' \'');
-    } else if (isRepeated) {
-      targetEl.setCustomValidity('hashtags should not be repeated');
-    } else if (tooMuchItems) {
-      targetEl.setCustomValidity('amount of hashtags should not be more than 5');
-    } else if (isTooLong) {
-      targetEl.setCustomValidity('hashtags should not be more than 20 chars');
+    if (hasItems) {
+      if (noHashtag) {
+        targetEl.setCustomValidity('hashtags should start with \'#\' and splitted by \' \'');
+      } else if (isRepeated) {
+        targetEl.setCustomValidity('hashtags should not be repeated');
+      } else if (tooMuchItems) {
+        targetEl.setCustomValidity('amount of hashtags should not be more than 5');
+      } else if (isTooLong) {
+        targetEl.setCustomValidity('hashtags should not be more than 20 chars');
+      } else {
+        targetEl.setCustomValidity('');
+      }
     } else {
       targetEl.setCustomValidity('');
     }
   }
 
   function onCommentsInput(evt) {
-    var targetEl = evt.target;
-    if (targetEl.validity.tooShort) {
-      targetEl.setCustomValidity('Comment is too short');
-    } else if (targetEl.validity.tooLong) {
-      targetEl.setCustomValidity('Comment is too long');
-    } else {
-      targetEl.setCustomValidity('');
-    }
+    window.util.debounce(function () {
+      var targetEl = evt.target;
+      if (targetEl.validity.tooShort) {
+        targetEl.setCustomValidity('Comment is too short');
+      } else if (targetEl.validity.tooLong) {
+        targetEl.setCustomValidity('Comment is too long');
+      } else {
+        targetEl.setCustomValidity('');
+      }
+    });
   }
 
   function onEscapeDown(evt) {
@@ -229,7 +237,6 @@
     }
   }
 
-
 // HANDLERS
   function onUploadInputClick() {
     openUploadOverlay();
@@ -240,4 +247,5 @@
   }
 
   uploadInput.addEventListener('change', onUploadInputClick);
+
 })();
