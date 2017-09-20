@@ -246,6 +246,7 @@
     uploadInput.click();
   }
 
+  uploadInput.addEventListener('change', window.uploadImage.addImage);
   uploadInput.addEventListener('change', onUploadInputClick);
 
 })();
